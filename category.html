@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Category | SOHO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Top Bar -->
+  <div class="flex items-center justify-between p-4 max-w-4xl mx-auto">
+    <a href="javascript:history.back()">
+      <img src="assets/back.png" alt="Back" class="w-10 h-10" />
+    </a>
+    <h1 id="page-title" class="text-2xl font-bold text-center w-full -ml-10">Category</h1>
+  </div>
+
+  <!-- Grid -->
+  <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 max-w-6xl mx-auto"></div>
+
+  <!-- Firebase Script -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFmTqnpTzUpJ6-qOcQhSk3hBpZZvQ_4dk",
+      authDomain: "edmart-982fc.firebaseapp.com",
+      projectId: "edmart-982fc"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type") || "books";
+    const category = params.get("category") || "";
+
+    document.getElementById("page-title").textContent = category;
+
+    const grid = document.getElementById("product-grid");
+
+    async function loadProducts() {
+      try {
+        const snap = await db.collection("productid")
+          .where("type", "==", type)
+          .where("category", "==", category)
+          .get();
+
+        if (snap.empty) {
+          grid.innerHTML = `<p class="text-center col-span-full text-gray-500">No products found.</p>`;
+          return;
+        }
+
+        snap.forEach(doc => {
+          const product = doc.data();
+          const card = document.createElement("a");
+          card.href = `preview.html?productid=${product.productid}`;
+          card.className = "bg-white rounded-xl shadow p-3 text-center hover:shadow-lg block";
+
+          card.innerHTML = `
+            <img src="${product.image?.[0] || ''}" onerror="this.src='assets/default.png'" class="w-full h-32 object-cover rounded mb-2">
+            <h3 class="text-sm font-semibold">${product.name}</h3>
+            <p class="text-green-600 font-bold text-sm">Rs. ${product.selling_price}</p>
+            ${product.strikethrough_price ? `<p class="line-through text-gray-500 text-xs">Rs. ${product.strikethrough_price}</p>` : ""}
+          `;
+
+          grid.appendChild(card);
+        });
+
+      } catch (e) {
+        grid.innerHTML = `<p class="text-center col-span-full text-red-500">Failed to load products.</p>`;
+        console.error(e);
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>

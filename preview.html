@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preview | EdMart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+  <!-- Back Button -->
+  <div class="absolute top-4 left-4 z-50">
+    <a href="javascript:history.back()">
+      <img src="assets/back.png" alt="Back" class="w-10 h-10" />
+    </a>
+  </div>
+
+  <!-- Main -->
+  <main class="flex-1 mx-auto pt-16 pb-28 px-4 w-[80%] max-w-[400px]">
+
+    <!-- Image Carousel -->
+    <div class="relative w-full bg-white rounded-xl shadow overflow-hidden">
+      <img id="carousel-image" src="" alt="Product" class="w-full h-auto object-contain rounded-t-xl" />
+      <button id="left-btn" class="absolute top-1/2 left-2 -translate-y-1/2 bg-white bg-opacity-75 rounded-full p-2 hidden">
+        ◀
+      </button>
+      <button id="right-btn" class="absolute top-1/2 right-2 -translate-y-1/2 bg-white bg-opacity-75 rounded-full p-2 hidden">
+        ▶
+      </button>
+    </div>
+
+    <!-- Product Info -->
+    <div class="mt-6 space-y-2 text-center">
+      <h2 id="product-name" class="text-xl font-bold"></h2>
+      <div class="flex justify-center items-center space-x-2">
+        <p id="selling-price" class="text-green-600 font-bold text-lg"></p>
+        <p id="strikethrough-price" class="text-gray-500 line-through text-sm"></p>
+        <p id="discount" class="text-red-500 text-sm font-semibold"></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Order Now Button -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4 flex justify-center z-50">
+    <a id="order-link" href="#" class="bg-green-600 text-white font-bold px-10 py-3 rounded-xl text-center shadow hover:bg-green-700 transition">
+      Order Now
+    </a>
+  </footer>
+
+  <!-- Firebase + Logic -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFmTqnpTzUpJ6-qOcQhSk3hBpZZvQ_4dk",
+      authDomain: "edmart-982fc.firebaseapp.com",
+      projectId: "edmart-982fc"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const params = new URLSearchParams(window.location.search);
+    const productid = params.get("productid");
+    if (!productid) {
+      alert("Invalid product link");
+      window.history.back();
+    }
+
+    const carousel = document.getElementById("carousel-image");
+    const leftBtn = document.getElementById("left-btn");
+    const rightBtn = document.getElementById("right-btn");
+
+    const productName = document.getElementById("product-name");
+    const sellPrice = document.getElementById("selling-price");
+    const strikePrice = document.getElementById("strikethrough-price");
+    const discount = document.getElementById("discount");
+    const orderLink = document.getElementById("order-link");
+
+    let images = [];
+    let currentIndex = 0;
+
+    function updateCarousel() {
+      carousel.src = images[currentIndex];
+      leftBtn.style.display = currentIndex > 0 ? "block" : "none";
+      rightBtn.style.display = currentIndex < images.length - 1 ? "block" : "none";
+    }
+
+    leftBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateCarousel();
+      }
+    };
+
+    rightBtn.onclick = () => {
+      if (currentIndex < images.length - 1) {
+        currentIndex++;
+        updateCarousel();
+      }
+    };
+
+    async function loadProduct() {
+      try {
+        const pidDoc = await db.collection("productid").doc(productid).get();
+        if (!pidDoc.exists) throw new Error("Product not found");
+
+        const path = pidDoc.data().path;
+        const productRef = db.doc(path);
+        const productSnap = await productRef.get();
+        if (!productSnap.exists) throw new Error("Product path invalid");
+
+        const data = productSnap.data();
+        productName.textContent = data.name;
+        sellPrice.textContent = `Rs. ${data.selling_price}`;
+        strikePrice.textContent = data.strikethrough_price ? `Rs. ${data.strikethrough_price}` : "";
+
+        if (data.strikethrough_price) {
+          const diff = data.strikethrough_price - data.selling_price;
+          const percent = Math.round((diff / data.strikethrough_price) * 100);
+          discount.textContent = `(${percent}% OFF)`;
+        }
+
+        images = data.image;
+        currentIndex = 0;
+        updateCarousel();
+
+        orderLink.href = `order.html?productid=${productid}`;
+      } catch (err) {
+        alert("Failed to load product preview.");
+        console.error(err);
+      }
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>

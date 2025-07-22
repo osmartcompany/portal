@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The ultimate destination for students seeking resources, because your success matters to us!">
+    <title>Home | oSmart</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <script src="tailwindcss"></script>
+    <link rel="stylesheet" href="home.css">
+</head>
+
+<body id="bdy" class="bg-gray-100">
+    <!-- Side Drawer -->
+    <div id="drawer"
+        class="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300">
+        <!-- Future content goes here -->
+        <div>
+            <a href="#">About Us</a>
+        </div>
+    </div>
+
+    <!-- Drawer Toggle Button -->
+    <button onclick="document.getElementById('drawer').classList.toggle('-translate-x-full')"
+        class="fixed top-4 left-4 z-50 p-2 bg-transparent shadow-none rounded-md">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
+    <!-- Header -->
+    <header class="flex flex-col items-center bg-transparent p-4">
+        <img src="assets/logo.png" id="logo" alt="Logo" class="mb-2">
+        <p id="cheap" class="text-sm text-gray-600 mt-1">cheap, easy and fast!</p>
+    </header>
+
+    <!-- Main content -->
+    <main class="p-4">
+        <!-- 2x2 Small Rectangles -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <a href="cert.html"
+                class="bg-opacity-70 bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[2/1] flex flex-row items-center justify-center space-x-2 transition transform duration-150 ease-in-out">
+                <img src="assets/cert.png" alt="Box 1" class="w-10 h-10">
+                <span class="text-base font-medium">Certificate</span>
+            </a>
+            <a href="books.html"
+                class="bg-opacity-70 bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[2/1] flex flex-row items-center justify-center space-x-2 transition transform duration-150 ease-in-out">
+                <img src="assets/book.png" alt="Box 2" class="w-10 h-10">
+                <span class="text-base font-medium">Books</span>
+            </a>
+            <a href="stationery.html" class="bg-opacity-70 bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[2/1] flex flex-row items-center justify-center space-x-2 transition transform duration-150 ease-in-out">
+                <img src="assets/stat.png" alt="Box 3" class="w-10 h-10">
+                <span class="text-base font-medium">Stationery</span>
+            </a>
+            <a href="other.html"
+                class="bg-opacity-70 bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[2/1] flex flex-row items-center justify-center space-x-2 transition transform duration-150 ease-in-out">
+                <img src="assets/other.png" alt="Box 4" class="w-10 h-10">
+                <span class="text-base font-medium">Other</span>
+            </a>
+        </div>
+
+        <!-- Big Rectangle -->
+        <!-- <button
+      class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md w-full aspect-[4/1] flex items-center justify-center transition transform duration-150 ease-in-out">
+      <img src="assets/bigbox.png" alt="bigbox" class="w-12 h-12 mb-1">
+      Big Box (equal area)
+    </button> -->
+    </main>
+
+    <!-- Floating Support Button with Image -->
+    <a href="support.html"
+        class="fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full bg-white shadow-lg hover:shadow-xl focus:outline-none flex items-center justify-center"
+        aria-label="Customer Support">
+        <img src="assets/support.png" alt="Support" class="w-8 h-8">
+    </a>
+</body>
+
+<!-- Footer -->
+<footer class="mt-12 text-center text-gray-400 text-sm">
+    <p>&copy; 2025 EdMart. All rights reserved.</p>
+</footer>
+
+</html>

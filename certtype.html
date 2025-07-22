@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select Certificate Type</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+
+  <!-- Home Button -->
+  <a href="cert.html" class="fixed top-4 left-4 z-50">
+    <img src="assets/back.png" alt="Home" class="w-10 h-10">
+  </a>
+
+  <!-- Title -->
+  <h1 class="text-3xl font-bold text-center mt-16 mb-6">Certificate Type</h1>
+
+  <!-- Type Selection Buttons -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 max-w-6xl mx-auto">
+    <a href="#" id="type-Original_Marksheet" class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex items-center justify-between px-4 transition transform duration-150 ease-in-out">
+        <div class="flex items-center space-x-4">
+            <span class="text-lg font-medium">Original Marksheet</span>
+        </div>
+        <span class="text-green-600 text-lg font-semibold" id="price-Original_Marksheet">Loading...</span>
+    </a>
+
+    <a href="#" id="type-Original_Pass_Certificate" class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex items-center justify-between px-4 transition transform duration-150 ease-in-out">
+        <div class="flex items-center space-x-4">
+            <span class="text-lg font-medium">Original Pass Certificate</span>
+        </div>
+        <span class="text-green-600 text-lg font-semibold" id="price-Original_Pass_Certificate">Loading...</span>
+    </a>
+
+    <a href="#" id="type-Duplicate_Marksheet" class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex items-center justify-between px-4 transition transform duration-150 ease-in-out">
+        <div class="flex items-center space-x-4">
+            <span class="text-lg font-medium">Duplicate Marksheet</span>
+        </div>
+        <span class="text-green-600 text-lg font-semibold" id="price-Duplicate_Marksheet">Loading...</span>
+    </a>
+
+    <a href="#" id="type-Duplicate_Pass_Certificate" class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex items-center justify-between px-4 transition transform duration-150 ease-in-out">
+        <div class="flex items-center space-x-4">
+            <span class="text-lg font-medium">Duplicate Pass Certificate</span>
+        </div>
+        <span class="text-green-600 text-lg font-semibold" id="price-Duplicate_Pass_Certificate">Loading...</span>
+    </a>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFmTqnpTzUpJ6-qOcQhSk3hBpZZvQ_4dk",
+      authDomain: "edmart-982fc.firebaseapp.com",
+      projectId: "edmart-982fc"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get('category');
+
+    const types = [
+      "Original_Marksheet",
+      "Original_Pass_Certificate",
+      "Duplicate_Marksheet",
+      "Duplicate_Pass_Certificate"
+    ];
+
+    async function loadTypeButtons() {
+      for (const type of types) {
+        try {
+          const docRef = db.collection("products").doc("certificate").collection(category).doc(type.replace(/_/g, ' '));
+          const docSnap = await docRef.get();
+
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            const priceEl = document.getElementById("price-" + type);
+            const linkEl = document.getElementById("type-" + type);
+
+            priceEl.textContent = `Rs. ${data.selling_price}`;
+            linkEl.href = `order.html?productid=${data.productid}`;
+          } else {
+            document.getElementById("price-" + type).textContent = "Not found";
+          }
+        } catch (err) {
+          console.error("Error fetching type:", type, err);
+          document.getElementById("price-" + type).textContent = "Error";
+        }
+      }
+    }
+
+    if (category) loadTypeButtons();
+    else alert("No category selected.");
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Books | SOHO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between p-4 max-w-4xl mx-auto relative">
+    <a href="index.html">
+      <img src="assets/home.png" alt="Home" class="w-10 h-10" />
+    </a>
+    <div id="search-toggle" class="cursor-pointer" onclick="toggleSearch()">
+      <img src="assets/search.png" alt="Search" class="w-6 h-6" />
+    </div>
+    <div id="search-bar" class="hidden w-full relative">
+      <input id="search-input" type="text" placeholder="Search books..."
+        class="w-full p-2 pl-10 rounded border bg-white shadow" oninput="searchBooks()" onblur="restoreSearch()" />
+      <img src="assets/search.png"
+        class="absolute top-1/2 left-3 transform -translate-y-1/2 w-5 h-5 pointer-events-none" />
+    </div>
+  </div>
+
+  <!-- Shelves -->
+  <div id="shelves" class="space-y-10 px-4 max-w-6xl mx-auto pb-20"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFmTqnpTzUpJ6-qOcQhSk3hBpZZvQ_4dk",
+      authDomain: "edmart-982fc.firebaseapp.com",
+      projectId: "edmart-982fc"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const shelvesEl = document.getElementById("shelves");
+    const searchToggle = document.getElementById("search-toggle");
+    const searchBar = document.getElementById("search-bar");
+    const searchInput = document.getElementById("search-input");
+
+    let allBooks = [];
+    let fuse;
+    let categories = [];
+    let shelfIndex = 0;
+    let loadingNextShelf = false;
+    let searchMode = false;
+
+    function toggleSearch() {
+      searchBar.classList.remove("hidden");
+      searchToggle.classList.add("hidden");
+      searchInput.focus();
+    }
+
+    function restoreSearch() {
+      setTimeout(() => {
+        if (searchInput.value.trim() === "") {
+          searchMode = false;
+          searchBar.classList.add("hidden");
+          searchToggle.classList.remove("hidden");
+          shelvesEl.innerHTML = "";
+          shelfIndex = 0;
+          loadNextShelf();
+          checkIfMoreShelvesNeeded();
+        }
+      }, 150);
+    }
+
+    function searchBooks() {
+      const q = searchInput.value.trim();
+      if (!q) return;
+      searchMode = true;
+      const results = fuse.search(q).map(r => r.item);
+      renderSearchResults(results);
+    }
+
+    function renderSearchResults(results) {
+      shelvesEl.innerHTML = `<h2 class="text-xl font-bold mb-2 px-1">Search Results</h2>`;
+      const grid = document.createElement("div");
+      grid.className = "grid grid-cols-2 md:grid-cols-4 gap-4";
+      results.forEach(product => {
+        fetchFullProduct(product.path).then(prod => {
+          const card = document.createElement("div");
+          card.innerHTML = createCardHTML(prod, product.productid);
+          card.onclick = () => gotoProduct(product.productid);
+          grid.appendChild(card);
+        });
+      });
+      shelvesEl.appendChild(grid);
+    }
+
+    function createCardHTML(product, productid) {
+      return `
+    <a href="preview.html?productid=${productid}" class="bg-white p-3 min-w-[160px] max-w-[180px] rounded-xl shadow text-center cursor-pointer hover:shadow-md no-underline block">
+      <img src="${product.image?.[0] || ''}" onerror="this.src='assets/default.png'" alt="${product.name}" class="w-full h-32 object-cover rounded mb-2">
+      <h3 class="text-sm font-semibold">${product.name}</h3>
+      <p class="text-green-600 font-bold text-sm">Rs. ${product.selling_price}</p>
+      ${product.strikethrough_price ? `<p class="line-through text-gray-500 text-xs">Rs. ${product.strikethrough_price}</p>` : ""}
+    </a>
+  `;
+    }
+
+
+    function gotoProduct(productid) {
+      window.location.href = `preview.html?productid=${productid}`;
+    }
+
+    async function loadNextShelf() {
+      if (shelfIndex >= categories.length || loadingNextShelf || searchMode) return;
+      loadingNextShelf = true;
+
+      const cat = categories[shelfIndex++];
+      const booksInCat = allBooks.filter(p => p.category === cat);
+
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "flex justify-center py-6";
+      loadingDiv.innerHTML = `<img src="assets/loading.gif" alt="Loading..." class="w-10 h-10">`;
+      shelvesEl.appendChild(loadingDiv);
+
+      const fullProducts = await Promise.all(
+        booksInCat.slice(0, 6).map(p => fetchFullProduct(p.path).then(data => ({ ...data, productid: p.productid })))
+      );
+
+      const shelf = document.createElement("div");
+      shelf.innerHTML = `
+      <h2 class="text-xl font-bold mb-2 px-1">${cat}</h2>
+      <div class="flex space-x-4 overflow-x-auto pb-2">
+        ${fullProducts.map(prod => createCardHTML(prod, prod.productid)).join("")}
+        <a href="category.html?type=books&category=${encodeURIComponent(cat)}"
+          class="min-w-[160px] flex flex-col items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-xl text-sm text-gray-600 font-semibold">
+          <img src="assets/more.png" alt="More" class="w-10 h-10 mb-1"> More
+        </a>
+      </div>
+    `;
+      shelvesEl.replaceChild(shelf, loadingDiv);
+      loadingNextShelf = false;
+
+      checkIfMoreShelvesNeeded(); // 🔁 Recursive trigger
+    }
+
+    function checkIfMoreShelvesNeeded() {
+      if (!searchMode && document.body.scrollHeight <= window.innerHeight + 100) {
+        setTimeout(loadNextShelf, 200); // 🔁 keep going
+      }
+    }
+
+    window.addEventListener("scroll", () => {
+      if (!searchMode && window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+        loadNextShelf();
+      }
+    });
+
+    function fetchFullProduct(path) {
+      return db.doc(path).get().then(doc => doc.exists ? doc.data() : {});
+    }
+
+    async function fetchBooks() {
+      const meta = await db.collection("products").doc("books").get();
+      categories = meta.exists && Array.isArray(meta.data()?._meta?.categories)
+        ? meta.data()._meta.categories
+        : [];
+
+      const snap = await db.collection("productid").where("type", "==", "books").get();
+      allBooks = snap.docs.map(doc => doc.data());
+      fuse = new Fuse(allBooks, {
+        keys: ["name", "category"],
+        threshold: 0.4,
+        ignoreLocation: true
+      });
+
+      shelfIndex = 0;
+      loadNextShelf();
+      setTimeout(checkIfMoreShelvesNeeded, 300); // initial trigger
+    }
+
+    fetchBooks();
+  </script>
+
+</body>
+
+</html>

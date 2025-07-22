@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Certificate | SOHO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media (min-width: 500px) {
+      .grid-cert {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+  <!-- Home Button -->
+  <a href="index.html" class="fixed top-4 left-4 z-50">
+    <img src="assets/home.png" alt="Home" class="w-10 h-10">
+  </a>
+
+  <!-- Page Title -->
+  <h1 class="text-3xl font-bold text-center mt-16 mb-6">Certificate Services</h1>
+
+  <!-- Card Buttons Grid -->
+  <!-- Responsive Certificate Buttons -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <a href="certtype.html?category=BISEH"
+      class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex flex-row items-center justify-start space-x-4 p-4 transition transform duration-150 ease-in-out">
+      <img src="assets/biseh.png" alt="Apply for Transcript" class="w-12 h-12">
+      <span class="text-lg font-medium">BISE Hyderabad</span>
+    </a>
+
+    <a href="certtype.html?category=BISEK"
+      class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex flex-row items-center justify-start space-x-4 p-4 transition transform duration-150 ease-in-out">
+      <img src="assets/bisek.png" alt="Degree Certificate" class="w-12 h-12">
+      <span class="text-lg font-medium">BISE Karachi</span>
+    </a>
+
+    <a href="certtype.html?category=BISEL"
+      class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex flex-row items-center justify-start space-x-4 p-4 transition transform duration-150 ease-in-out">
+      <img src="assets/bisel.png" alt="Verification Letter" class="w-12 h-12">
+      <span class="text-lg font-medium">BISE Larkana</span>
+    </a>
+
+    <a href="certtype.html?category=BISES"
+      class="bg-white rounded-xl shadow-lg hover:shadow-2xl active:translate-y-1 active:shadow-md aspect-[3/1] w-full flex flex-row items-center justify-start space-x-4 p-4 transition transform duration-150 ease-in-out">
+      <img src="assets/bises.png" alt="Bonafide Certificate" class="w-12 h-12">
+      <span class="text-lg font-medium">BISE Sukkur</span>
+    </a>
+  </div>
+</body>
+
+</html>

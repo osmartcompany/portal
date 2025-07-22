@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order | oSmart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-4 relative">
+  <!-- Main Container -->
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+    <!-- Product Info -->
+    <div class="bg-white shadow-md p-4 mb-4 rounded">
+      <div class="flex items-center space-x-4">
+        <img id="product-image" src="" alt="Product" class="w-20 h-auto max-h-32 object-contain rounded" />
+        <div>
+          <h2 id="product-name" class="text-lg font-semibold"></h2>
+          <p id="product-category" class="text-sm text-gray-600"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Form -->
+    <form id="order-form" class="space-y-4 mb-28">
+      <input type="hidden" name="productid" id="productid-input" />
+
+      <div>
+        <label class="block font-semibold mb-1">Full Name</label>
+        <input type="text" name="customer" required class="w-full p-2 border rounded" placeholder="e.g. Hassan Soomro"/>
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1">Roll No.</label>
+        <input type="number" name="seat_number" required class="w-full p-2 border rounded" placeholder="1234567"/>
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1">Class Name</label>
+        <select name="class_name" id="class-name" required class="w-full p-2 border rounded">
+          <option value="">Select Class</option>
+          <option value="SSC-I (Class 9)">SSC-I (Class 9)</option>
+          <option value="SSC-II (Class 10)">SSC-II (Class 10)</option>
+          <option value="HSC-I (Class 11)">HSC-I (Class 11)</option>
+          <option value="HSC-II (Class 12)">HSC-II (Class 12)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1">Record Year</label>
+        <input type="number" name="record_year" min="1965" max="2099" required class="w-full p-2 border rounded" />
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1">Group</label>
+        <select name="group" id="group-select" required class="w-full p-2 border rounded">
+          <option value="">Select Group</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1">Phone Number</label>
+        <input type="tel" name="phone" required class="w-full p-2 border rounded" placeholder="e.g. 03123456789"/>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block font-semibold">Delivery Address</label>
+        <input type="text" name="district" placeholder="District" required class="w-full p-2 border rounded" />
+        <input type="text" name="city" placeholder="City" required class="w-full p-2 border rounded" />
+        <input type="text" name="area" placeholder="Area" required class="w-full p-2 border rounded" />
+        <input type="text" name="address" placeholder="Full Address" required class="w-full p-2 border rounded" />
+      </div>
+    </form>
+  </div>
+
+  <!-- Ribbon -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4 flex justify-between items-center z-10">
+    <div id="price-display" class="text-lg font-semibold">Loading price...</div>
+    <button id="pay-button" class="bg-green-600 text-white px-6 py-2 rounded opacity-50 cursor-not-allowed" disabled>
+      Pay
+    </button>
+  </div>
+
+  <!-- Processing Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="overlay-box" class="bg-white p-6 rounded-lg text-center shadow-lg w-80 space-y-4">
+      <img src="assets/loading.gif" alt="Loading" class="w-12 h-12 mx-auto" />
+      <p id="overlay-text" class="text-lg font-medium text-gray-700">Processing...</p>
+      <div id="overlay-actions" class="space-x-2 hidden">
+        <button onclick="location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded">Retry</button>
+        <a href="EdMart.html" class="bg-gray-500 text-white px-4 py-2 rounded inline-block">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase & Logic -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFmTqnpTzUpJ6-qOcQhSk3hBpZZvQ_4dk",
+      authDomain: "edmart-982fc.firebaseapp.com",
+      projectId: "edmart-982fc"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const params = new URLSearchParams(window.location.search);
+    const productid = params.get("productid");
+    document.getElementById("productid-input").value = productid;
+
+    const productName = document.getElementById("product-name");
+    const productCategory = document.getElementById("product-category");
+    const productImage = document.getElementById("product-image");
+    const priceDisplay = document.getElementById("price-display");
+    const payButton = document.getElementById("pay-button");
+
+    const classSelect = document.getElementById("class-name");
+    const groupSelect = document.getElementById("group-select");
+
+    classSelect.addEventListener("change", () => {
+      const val = classSelect.value;
+      groupSelect.innerHTML = '<option value="">Select Group</option>';
+      if (val === "SSC-I (Class 9)" || val === "SSC-II (Class 10)") {
+        ["Science", "General"].forEach(g => groupSelect.innerHTML += `<option value="${g}">${g}</option>`);
+      } else if (val === "HSC-I (Class 11)" || val === "HSC-II (Class 12)") {
+        ["Pre-Medical", "Pre-Engineering", "Pre-Computer Science", "Commerce", "Humanities-R", "Humanities-P", "Home Economics"]
+          .forEach(g => groupSelect.innerHTML += `<option value="${g}">${g}</option>`);
+      }
+    });
+
+    let currentProduct = null;
+
+    async function fetchProduct() {
+      try {
+        const pidDoc = await db.collection("productid").doc(productid).get();
+        if (!pidDoc.exists) throw new Error("Invalid productid");
+
+        const path = pidDoc.data().path;
+        const doc = await db.doc(path).get();
+        if (!doc.exists) throw new Error("Product not found");
+
+        currentProduct = doc.data();
+        fillProductUI(currentProduct);
+      } catch (e) {
+        console.error("Error fetching product:", e);
+        priceDisplay.textContent = "Error loading product";
+        disablePay();
+      }
+    }
+
+    function fillProductUI(product) {
+      productName.textContent = product.name;
+      productCategory.textContent = `Category: ${product.category}`;
+      productImage.src = product.image?.[0] || "assets/default.png";
+      priceDisplay.textContent = `Rs. ${product.selling_price}`;
+      validateForm();
+    }
+
+    function disablePay() {
+      payButton.disabled = true;
+      payButton.classList.add("opacity-50", "cursor-not-allowed");
+    }
+
+    function enablePay() {
+      payButton.disabled = false;
+      payButton.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+
+    function validateForm() {
+      const form = document.getElementById("order-form");
+      const fields = [...form.elements].filter(el => el.hasAttribute("required"));
+      const filled = fields.every(el => el.value.trim() !== "");
+      if (filled && currentProduct?.selling_price) {
+        enablePay();
+      } else {
+        disablePay();
+      }
+    }
+
+    document.getElementById("order-form").addEventListener("input", validateForm);
+
+    function generateOrderID() {
+      return "ORD-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
+
+    payButton.addEventListener("click", async () => {
+      const form = document.getElementById("order-form");
+      const formData = Object.fromEntries(new FormData(form).entries());
+      const orderId = generateOrderID();
+
+      const orderData = {
+        productid: productid,
+        orderid: orderId,
+        order_placed: new Date(),
+        form: formData
+      };
+
+      const overlay = document.getElementById("overlay");
+      const overlayText = document.getElementById("overlay-text");
+      const overlayActions = document.getElementById("overlay-actions");
+
+      overlay.classList.remove("hidden");
+      overlayText.textContent = "Processing...";
+      overlayActions.classList.add("hidden");
+
+      let redirected = false;
+
+      const timeout = setTimeout(() => {
+        if (!redirected) {
+          overlayText.textContent = "Error placing order.";
+          overlayActions.classList.remove("hidden");
+        }
+      }, 15000);
+
+      try {
+        await db.collection("orders").doc("new orders").collection("list").doc(orderId).set(orderData);
+        sessionStorage.setItem("pendingOrder", JSON.stringify({ ...orderData, name: currentProduct.name, category: currentProduct.category, price: currentProduct.selling_price }));
+        redirected = true;
+        clearTimeout(timeout);
+        window.location.href = "payment.html";
+      } catch (e) {
+        console.error(e);
+        overlayText.textContent = "Error placing order.";
+        overlayActions.classList.remove("hidden");
+      }
+    });
+
+    fetchProduct();
+  </script>
+</body>
+</html>
